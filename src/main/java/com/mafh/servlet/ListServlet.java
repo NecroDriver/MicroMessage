@@ -24,10 +24,27 @@ public class ListServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         try {
+            req.setCharacterEncoding("UTF-8");
+            String command = req.getParameter("command");
+            String description = req.getParameter("description");
+            req.setAttribute("command",command);
+            req.setAttribute("description",description);
             Class.forName("com.mysql.jdbc.Driver");
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/micro_message","root","123456");
-            String sql = "select id,command,description,content from message";
-            PreparedStatement ps = conn.prepareStatement(sql);
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/micro_message?characterEncoding=utf8","root","123456");
+            StringBuilder sql = new StringBuilder("select id,command,description,content from message where 1=1");
+            List<String> paramList = new ArrayList<String>();
+            if (command != null && !"".equals(command)){
+                paramList.add(command);
+                sql.append(" and command = ?");
+            }
+            if (description != null && !"".equals(description)){
+                paramList.add(description);
+                sql.append(" and description like '%' ? '%'");
+            }
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+            for (int i = 0; i < paramList.size(); i++) {
+                ps.setString(i+1,paramList.get(i));
+            }
             ResultSet rs = ps.executeQuery();
             List<Message> messageList = new ArrayList<Message>();
             while (rs.next()){
