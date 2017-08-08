@@ -1,18 +1,12 @@
 package com.mafh.servlet;
 
-import com.mafh.bean.Message;
+import com.mafh.service.ListService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mafh
@@ -21,44 +15,19 @@ import java.util.List;
  * 列表页面初始化控制
  */
 public class ListServlet extends HttpServlet {
+    private ListService listService = new ListService();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try {
-            req.setCharacterEncoding("UTF-8");
-            String command = req.getParameter("command");
-            String description = req.getParameter("description");
-            req.setAttribute("command",command);
-            req.setAttribute("description",description);
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/micro_message?characterEncoding=utf8","root","123456");
-            StringBuilder sql = new StringBuilder("select id,command,description,content from message where 1=1");
-            List<String> paramList = new ArrayList<String>();
-            if (command != null && !"".equals(command)){
-                paramList.add(command);
-                sql.append(" and command = ?");
-            }
-            if (description != null && !"".equals(description)){
-                paramList.add(description);
-                sql.append(" and description like '%' ? '%'");
-            }
-            PreparedStatement ps = conn.prepareStatement(sql.toString());
-            for (int i = 0; i < paramList.size(); i++) {
-                ps.setString(i+1,paramList.get(i));
-            }
-            ResultSet rs = ps.executeQuery();
-            List<Message> messageList = new ArrayList<Message>();
-            while (rs.next()){
-                Message message = new Message();
-                messageList.add(message);
-                message.setId(rs.getInt("id"));
-                message.setCommand(rs.getString("command"));
-                message.setDescription(rs.getString("description"));
-                message.setContent(rs.getString("content"));
-            }
-            req.setAttribute("messageList",messageList);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //在没有过滤器的情况下使用字节转码
+        req.setCharacterEncoding("UTF-8");
+        //接收参数
+        String command = req.getParameter("command");
+        String description = req.getParameter("description");
+        //出入返回值
+        req.setAttribute("command",command);
+        req.setAttribute("description",description);
+        req.setAttribute("messageList", listService.queryMessage(command,description));
+        //转发地址
         req.getRequestDispatcher("/WEB-INF/jsp/back/list.jsp").forward(req,resp);
     }
 

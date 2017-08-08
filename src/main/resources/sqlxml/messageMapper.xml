@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Message">
+
+    <resultMap type="com.mafh.bean.Message" id="messageResult">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="command" column="command" jdbcType="VARCHAR"/>
+        <result property="description" column="description" jdbcType="VARCHAR"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- 查询micro_message -->
+    <select id="queryMessage" parameterType="com.mafh.bean.Message" resultMap="messageResult">
+        <![CDATA[
+           select id,command,description,content
+           from message
+           where 1=1
+        ]]>
+        <if test="command != null and !''.equals(command.trim())">and command = #{command}</if>
+        <if test="description != null and !&quot;&quot;.equals(description.trim())">and description like '%' #{description} '%'</if>
+    </select>
+
+    <!--删除一条数据，没有返回值-->
+    <delete id="deleteOne" parameterType="int">
+        delete from message where id = #{_parameters}
+    </delete>
+
+</mapper>
