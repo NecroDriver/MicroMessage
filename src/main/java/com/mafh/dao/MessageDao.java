@@ -16,6 +16,7 @@ import java.util.List;
  * dao层处理bean对象与数据库交互的相关事务操作
  */
 public class MessageDao {
+    private DBAccess dbAccess = new DBAccess();
     //通过jdbc操作数据库
     public List<Message> searchMessage(String command,String description){
         List<Message> messageList = new ArrayList<Message>();
@@ -54,7 +55,6 @@ public class MessageDao {
     }
     //通过mybatis访问数据库
     public List<Message> queryMessage(String command,String description){
-        DBAccess dbAccess = new DBAccess();
         List<Message> messageList = new ArrayList<Message>();
         Message message = new Message();
         message.setCommand(command);
@@ -76,11 +76,25 @@ public class MessageDao {
 
     //删除数据库数据
     public void deleteOne(Integer id){
-        DBAccess dbAccess = new DBAccess();
         SqlSession sqlSession = null;
         try {
             sqlSession = dbAccess.getSqlSession();
             sqlSession.delete("Message.deleteOne",id);
+            sqlSession.commit();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(sqlSession != null){
+                sqlSession.close();
+            }
+        }
+    }
+    //批量删除数据库数据
+    public void deleteBatch(List<Integer> idList){
+        SqlSession sqlSession = null;
+        try {
+            sqlSession = dbAccess.getSqlSession();
+            sqlSession.delete("deleteBatch",idList);
             sqlSession.commit();
         } catch (IOException e) {
             e.printStackTrace();

@@ -25,4 +25,12 @@
         delete from message where id = #{_parameters}
     </delete>
 
+    <!--批量删除数据，没有返回值-->
+    <delete id="deleteBatch" parameterType="java.util.List">
+        delete from message where id in (
+        <foreach collection="list" item="item" separator=",">
+            #{item}
+        </foreach>
+        )
+    </delete>
 </mapper>
